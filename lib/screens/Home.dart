@@ -8,6 +8,8 @@ import 'package:fooody/widgets/CircleTabIndicator.dart';
 import 'package:fooody/widgets/CustomTab.dart';
 
 class Home extends StatefulWidget {
+  static String routeName = '/home-screen';
+
   @override
   _HomeState createState() => _HomeState();
 }
