@@ -1,18 +1,24 @@
+import 'package:after_layout/after_layout.dart';
 import 'package:flutter/material.dart';
 import 'package:fooody/custom_color_scheme.dart';
 
 class FoodScreen extends StatefulWidget {
   static String routeName = '/food-screen';
+  double offset = 30.0;
+  double containerHeight = 300.0;
 
   @override
   _FoodScreenState createState() => _FoodScreenState();
 }
 
-class _FoodScreenState extends State<FoodScreen> {
+class _FoodScreenState extends State<FoodScreen>
+    with AfterLayoutMixin<FoodScreen>, TickerProviderStateMixin {
   PageController _pageController;
-  var currentPage = 0;
-  var offset = 30.0;
-  var containerHeight = 300.0;
+  AnimationController _controller;
+  Animation<double> _animation;
+
+  int currentPage = 0;
+  double radius = 0.0;
 
   final List<String> images = [
     'assets/images/biryani2.jpeg',
@@ -28,13 +34,40 @@ class _FoodScreenState extends State<FoodScreen> {
       keepPage: false,
       viewportFraction: 1,
     );
+
+    _controller = AnimationController(
+        duration: const Duration(milliseconds: 3000), vsync: this);
+
+    _animation = Tween<double>(
+      begin: 1.4,
+      end: 1,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.ease,
+      ),
+    );
+
+    _controller.forward();
   }
 
   @override
   void dispose() {
     _pageController.dispose();
+    _controller.dispose();
 
     super.dispose();
+  }
+
+  @override
+  void afterFirstLayout(BuildContext context) {
+    Future.delayed(Duration(milliseconds: 200), () {
+      setState(() {
+        radius = 35;
+        _pageController.animateToPage(1,
+            duration: Duration(milliseconds: 800), curve: Curves.fastOutSlowIn);
+      });
+    });
   }
 
   Widget getExtrasRow(bool checked) {
@@ -92,44 +125,57 @@ class _FoodScreenState extends State<FoodScreen> {
         children: <Widget>[
           Positioned(
             top: 0,
-            child: Container(
-              height: containerHeight,
-              width: MediaQuery.of(context).size.width,
-              color: Colors.white,
-              child: PageView.builder(
-                onPageChanged: (value) {
-                  setState(() {
-                    currentPage = value;
-                  });
-                },
-                controller: _pageController,
-                itemCount: 3,
-                itemBuilder: (context, index) => Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                      colorFilter: ColorFilter.mode(
-                          Colors.black.withOpacity(0.2), BlendMode.overlay),
-                      image: AssetImage(images[index]),
-                      fit: BoxFit.cover,
+            child: AnimatedBuilder(
+              animation: _controller,
+              builder: (BuildContext context, Widget child) {
+                return Transform.scale(
+                  scale: _animation.value,
+                  alignment: Alignment.center,
+                  child: Container(
+                    height: widget.containerHeight,
+                    width: MediaQuery.of(context).size.width,
+                    color: Colors.white,
+                    child: PageView.builder(
+                      onPageChanged: (value) {
+                        setState(() {
+                          currentPage = value;
+                        });
+                      },
+                      controller: _pageController,
+                      itemCount: 3,
+                      itemBuilder: (context, index) => Container(
+                        decoration: BoxDecoration(
+                          image: DecorationImage(
+                            colorFilter: ColorFilter.mode(
+                                Colors.black.withOpacity(0.2),
+                                BlendMode.overlay),
+                            image: AssetImage(images[index]),
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
           Positioned(
-            top: containerHeight - offset,
-            child: Container(
+            top: widget.containerHeight - widget.offset,
+            child: AnimatedContainer(
+              duration: Duration(milliseconds: 1000),
+              curve: Curves.easeInOutSine,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(35),
-                  topRight: Radius.circular(35),
+                  topLeft: Radius.circular(radius),
+                  topRight: Radius.circular(radius),
                 ),
                 color: Colors.white,
               ),
               width: MediaQuery.of(context).size.width,
-              height:
-                  MediaQuery.of(context).size.height - containerHeight + offset,
+              height: MediaQuery.of(context).size.height -
+                  widget.containerHeight +
+                  widget.offset,
               child: SingleChildScrollView(
                 child: Padding(
                   padding:
@@ -204,7 +250,7 @@ class _FoodScreenState extends State<FoodScreen> {
             ),
           ),
           Positioned(
-            top: containerHeight - offset * 1.7,
+            top: widget.containerHeight - widget.offset * 1.8,
             child: Container(
               width: MediaQuery.of(context).size.width,
               child: Column(

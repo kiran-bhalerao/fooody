@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:fooody/custom_color_scheme.dart';
 import 'package:fooody/screens/Home.dart';
 import 'package:fooody/screens/food.dart';
+import 'package:fooody/screens/restaurant.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
       routes: {
         FoodScreen.routeName: (ctx) => FoodScreen(),
         Home.routeName: (ctx) => Home(),
+        RestaurantScreen.routeName: (ctx) => RestaurantScreen(),
       },
     );
   }
